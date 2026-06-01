@@ -6,24 +6,38 @@ using System.Windows.Forms;
 namespace PetitionGame
 {
     /// <summary>
-    /// §1 에셋 매니페스트 로더.
-    /// 파일이 있으면 이미지를, 없으면 회색 박스 + 파일명 라벨을 돌려준다.
-    /// (일러스트 후조립 — 아트가 없어도 개발/발표가 가능하도록.)
+    /// §1 에셋 로더. 우선순위: ① exe 임베디드 리소스 → ② 실행 파일 옆 assets/ 파일 → ③ 폴백(null).
+    /// 파일이 전혀 없으면 AssetPanel 이 회색 박스 + 파일명으로 폴백한다.
     /// </summary>
     public static class AssetLoader
     {
         public static string AssetsDir { get; } =
             Path.Combine(AppContext.BaseDirectory, "assets");
 
-        /// <summary>이미지를 로드한다. 없으면 null.</summary>
         public static Image LoadImage(string fileName)
         {
+            // ① 임베디드 리소스 (LogicalName = 파일명)
+            try
+            {
+                var asm = typeof(AssetLoader).Assembly;
+                using var s = asm.GetManifestResourceStream(fileName);
+                if (s != null)
+                {
+                    using var tmp = Image.FromStream(s);
+                    return new Bitmap(tmp);
+                }
+            }
+            catch
+            {
+                // 다음 단계로
+            }
+
+            // ② 실행 파일 옆 assets/ 파일 (개발 편의)
             try
             {
                 var path = Path.Combine(AssetsDir, fileName);
                 if (File.Exists(path))
                 {
-                    // 파일 잠금을 피하기 위해 스트림 복사로 로드
                     using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
                     using var tmp = Image.FromStream(fs);
                     return new Bitmap(tmp);
@@ -31,15 +45,17 @@ namespace PetitionGame
             }
             catch
             {
-                // 손상된 파일 등 → 폴백
+                // 폴백
             }
+
             return null;
         }
     }
 
     /// <summary>
-    /// 이미지를 배경으로 채우는 패널. 파일이 없으면 회색 + 파일명 라벨로 폴백.
-    /// 배경/UI 부품/사진/아이콘 모두 이것으로 표현한다.
+    /// 이미지를 배경으로 채우는 패널. 파일이 없으면 회색 + 파일명 텍스트로 폴백.
+    /// 폴백 텍스트는 자식 컨트롤이 아니라 패널이 직접 그리므로(z-order 안전),
+    /// 폼이 위에 올린 오버레이(제목·버튼 등)를 가리지 않는다.
     /// </summary>
     public class AssetPanel : Panel
     {
@@ -62,18 +78,20 @@ namespace PetitionGame
             {
                 HasImage = false;
                 BackColor = Color.FromArgb(72, 72, 80);
-                var label = new Label
-                {
-                    Text = "[" + fileName + "]",
-                    ForeColor = Color.FromArgb(190, 190, 200),
-                    Font = new Font(FontFamily.GenericSansSerif, 8f),
-                    AutoSize = false,
-                    Dock = DockStyle.Fill,
-                    TextAlign = ContentAlignment.MiddleCenter,
-                    BackColor = Color.Transparent
-                };
-                Controls.Add(label);
             }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (HasImage) return;
+
+            var s = "[" + FileName + "]";
+            using var font = new Font(FontFamily.GenericSansSerif, 8f);
+            var size = e.Graphics.MeasureString(s, font);
+            e.Graphics.DrawString(
+                s, font, Brushes.Gainsboro,
+                (Width - size.Width) / 2f, (Height - size.Height) / 2f);
         }
     }
 }

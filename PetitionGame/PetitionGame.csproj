@@ -12,10 +12,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- assets 폴더의 모든 파일을 출력 폴더로 복사 (없으면 회색 박스 폴백) -->
-    <Content Include="assets\**\*.*">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    <!-- assets 폴더의 모든 파일을 exe 에 임베드 (외부 폴더 의존 제거).
+         LogicalName 을 파일명으로 두어 GetManifestResourceStream("bg_title.png") 으로 접근. -->
+    <EmbeddedResource Include="assets\**\*.*">
+      <LogicalName>%(Filename)%(Extension)</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>
