@@ -8,8 +8,8 @@ namespace PetitionGame
 {
     /// <summary>
     /// 책상 화면 — 튜토리얼 코어.
-    /// 청원서/신분증 표시 → [통과][기각][이첩] → Rulebook 판정 → 결과 → 다음.
-    /// 4번째 청원에서 [이첩] 버튼과 스탯이 처음 등장한다.
+    /// 세로형 청원서(petition_blank) 위에 신청 정보를 올리고, 우측에 신분증 카드를 둔다.
+    /// [통과][기각][이첩] → Rulebook 판정 → 결과 → 다음. 4번째 청원에서 [이첩]·스탯 첫 등장.
     /// </summary>
     public class DeskForm : SceneForm
     {
@@ -20,18 +20,22 @@ namespace PetitionGame
 
         public event Action Finished;
 
+        // 청원서 패널 위치/크기 (세로형 양식 비율 0.75)
+        private const int PX = 110, PY = 96, PW = 384, PH = 512;
+
         // 상단
         private Label _counter;
         private Label _guide;
 
-        // 청원서 패널
+        // 청원서
         private AssetPanel _petitionPanel;
+        private AssetPanel _petitionPhoto;
         private Label _pApplicant, _pRegion, _pRequest, _pStamp;
         private AssetPanel _stampOverlay;
 
-        // 신분증 패널
-        private AssetPanel _idPanel;
-        private AssetPanel _photo;
+        // 신분증 카드 (코드로 그린 스타일 카드)
+        private Panel _idCard;
+        private AssetPanel _idPhoto;
         private Label _idName, _idRegion;
 
         // 결과/버튼
@@ -51,7 +55,7 @@ namespace PetitionGame
 
             BuildTopBar(bg);
             BuildPetitionPanel(bg);
-            BuildIdPanel(bg);
+            BuildIdCard(bg);
             BuildStats(bg);
             BuildResultAndButtons(bg);
 
@@ -69,7 +73,7 @@ namespace PetitionGame
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(240, 36),
+                Size = new Size(250, 36),
                 Location = new Point(24, 16)
             };
             host.Controls.Add(_counter);
@@ -77,8 +81,8 @@ namespace PetitionGame
             var bubble = new Panel
             {
                 BackColor = Color.FromArgb(20, 20, 26),
-                Size = new Size(820, 64),
-                Location = new Point(280, 16)
+                Size = new Size(800, 60),
+                Location = new Point(300, 16)
             };
             host.Controls.Add(bubble);
 
@@ -97,60 +101,60 @@ namespace PetitionGame
 
         private void BuildPetitionPanel(Control host)
         {
+            host.Controls.Add(MakeCaption("청원서", PX, PY - 28, PW));
+
             _petitionPanel = new AssetPanel("petition_blank.png")
             {
-                Size = new Size(470, 446),
-                Location = new Point(120, 110)
+                Size = new Size(PW, PH),
+                Location = new Point(PX, PY)
             };
             host.Controls.Add(_petitionPanel);
 
-            host.Controls.Add(MakeCaption("청원서", _petitionPanel.Left, _petitionPanel.Top - 30, 470));
+            // 양식 칸에 맞춘 신청 정보 (목업으로 정렬 확인한 좌표)
+            _pApplicant = MakeField(_petitionPanel, 38, 69, 210);
+            _pRegion = MakeField(_petitionPanel, 38, 100, 210);
+            _pRequest = MakeField(_petitionPanel, 38, 205, 300);
+            _pStamp = MakeField(_petitionPanel, 38, 404, 230);
 
-            var title = new Label
-            {
-                Text = "請 願 書",
-                Font = UiTheme.Title(26f, FontStyle.Bold),
-                ForeColor = UiTheme.PaperInk,
-                BackColor = Color.Transparent,
-                AutoSize = false,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Size = new Size(470, 56),
-                Location = new Point(0, 20)
-            };
-            _petitionPanel.Controls.Add(title);
-
-            _pApplicant = MakeField(_petitionPanel, "신청인", 110);
-            _pRegion = MakeField(_petitionPanel, "거주구역", 170);
-            _pRequest = MakeField(_petitionPanel, "신청사항", 230);
-            _pStamp = MakeField(_petitionPanel, "황제 도장", 320);
-
-            // 처분 도장 오버레이 (선택 시 표시)
-            _stampOverlay = null;
+            // 양식 우상단 사진칸
+            // (실제 사진은 ReplacePhotos 에서 주입)
         }
 
-        private void BuildIdPanel(Control host)
+        private void BuildIdCard(Control host)
         {
-            _idPanel = new AssetPanel("id_blank.png")
+            host.Controls.Add(MakeCaption("신분증", 560, PY - 28, 380));
+
+            _idCard = new Panel
             {
-                Size = new Size(430, 250),
-                Location = new Point(700, 150)
+                Size = new Size(380, 250),
+                Location = new Point(560, PY),
+                BackColor = UiTheme.Paper,
+                BorderStyle = BorderStyle.FixedSingle
             };
-            host.Controls.Add(_idPanel);
+            host.Controls.Add(_idCard);
 
-            host.Controls.Add(MakeCaption("신분증", _idPanel.Left, _idPanel.Top - 30, 430));
-
-            var title = new Label
+            var header = new Label
             {
-                Text = "신 분 증",
-                Font = UiTheme.Title(18f, FontStyle.Bold),
-                ForeColor = UiTheme.PaperInk,
-                BackColor = Color.Transparent,
+                Text = "신 분 증  ·  제국 시민",
+                Font = UiTheme.Body(13f, FontStyle.Bold),
+                ForeColor = Color.White,
+                BackColor = UiTheme.Accent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleCenter,
-                Size = new Size(430, 36),
-                Location = new Point(0, 12)
+                Dock = DockStyle.Top,
+                Height = 36
             };
-            _idPanel.Controls.Add(title);
+            _idCard.Controls.Add(header);
+
+            var photoFrame = new Panel
+            {
+                Location = new Point(20, 56),
+                Size = new Size(118, 150),
+                BackColor = Color.FromArgb(60, 52, 40)
+            };
+            _idCard.Controls.Add(photoFrame);
+            _idPhoto = new AssetPanel("photo_01.png", ImageLayout.Zoom) { Dock = DockStyle.Fill };
+            photoFrame.Controls.Add(_idPhoto);
 
             _idName = new Label
             {
@@ -159,22 +163,22 @@ namespace PetitionGame
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(240, 36),
-                Location = new Point(170, 70)
+                Size = new Size(210, 32),
+                Location = new Point(156, 70)
             };
-            _idPanel.Controls.Add(_idName);
+            _idCard.Controls.Add(_idName);
 
             _idRegion = new Label
             {
-                Font = UiTheme.Body(15f),
+                Font = UiTheme.Body(14f),
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(240, 36),
-                Location = new Point(170, 120)
+                Size = new Size(210, 32),
+                Location = new Point(156, 120)
             };
-            _idPanel.Controls.Add(_idRegion);
+            _idCard.Controls.Add(_idRegion);
         }
 
         private void BuildStats(Control host)
@@ -188,17 +192,17 @@ namespace PetitionGame
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleCenter,
                 Size = new Size(270, 28),
-                Location = new Point(700, 416),
+                Location = new Point(960, PY),
                 Visible = false
             };
             host.Controls.Add(_statHeader);
 
             _barConscience = new StatBar("양심", "icon_conscience.png", UiTheme.Conscience)
-            { Location = new Point(700, 446), Visible = false };
+            { Location = new Point(960, PY + 32), Visible = false };
             _barSin = new StatBar("죄악", "icon_sin.png", UiTheme.Sin)
-            { Location = new Point(700, 486), Visible = false };
+            { Location = new Point(960, PY + 72), Visible = false };
             _barSuspicion = new StatBar("의심", "icon_suspicion.png", UiTheme.Suspicion)
-            { Location = new Point(700, 526), Visible = false };
+            { Location = new Point(960, PY + 112), Visible = false };
 
             host.Controls.Add(_barConscience);
             host.Controls.Add(_barSin);
@@ -210,8 +214,8 @@ namespace PetitionGame
             var band = new Panel
             {
                 BackColor = Color.FromArgb(16, 16, 20),
-                Size = new Size(560, 130),
-                Location = new Point(120, 566)
+                Size = new Size(660, 130),
+                Location = new Point(560, 380)
             };
             host.Controls.Add(band);
 
@@ -227,9 +231,9 @@ namespace PetitionGame
             };
             band.Controls.Add(_result);
 
-            _btnApprove = MakeActionButton("통 과", Color.FromArgb(56, 120, 72), 760);
-            _btnReject = MakeActionButton("기 각", Color.FromArgb(150, 56, 56), 940);
-            _btnRefer = MakeActionButton("이 첩", Color.FromArgb(120, 96, 40), 1120);
+            _btnApprove = MakeActionButton("통 과", Color.FromArgb(56, 120, 72), 560);
+            _btnReject = MakeActionButton("기 각", Color.FromArgb(150, 56, 56), 745);
+            _btnRefer = MakeActionButton("이 첩", Color.FromArgb(120, 96, 40), 930);
             _btnRefer.Visible = false;
 
             _btnApprove.Click += (s, e) => OnVerdict(Verdict.Approve);
@@ -244,8 +248,8 @@ namespace PetitionGame
             {
                 Text = "다음 청원 ▶",
                 Font = UiTheme.Body(15f, FontStyle.Bold),
-                Size = new Size(510, 56),
-                Location = new Point(760, 640),
+                Size = new Size(540, 56),
+                Location = new Point(560, 540),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = UiTheme.Accent,
                 ForeColor = Color.White,
@@ -274,19 +278,17 @@ namespace PetitionGame
             _counter.Text = $"1일차 · 청원 {_index + 1} / {_petitions.Count}";
             _guide.Text = p.Guide;
 
-            // 청원서
+            // 청원서 (양식 위 텍스트)
             _pApplicant.Text = $"신청인 :  {p.ApplicantName}";
             _pRegion.Text = $"거주구역 :  {p.Region}";
             _pRequest.Text = $"신청사항 :  {p.Request}";
-            _pStamp.Text = p.HasValidStamp
-                ? "황제 도장 :  ㊀ 유효"
-                : "황제 도장 :  (누락)";
+            _pStamp.Text = p.HasValidStamp ? "황제 도장 :  ㊀ 유효" : "황제 도장 :  (누락)";
             _pStamp.ForeColor = p.HasValidStamp ? UiTheme.PaperInk : UiTheme.Accent;
 
             // 신분증
             _idName.Text = $"이름 :  {p.Id.Name}";
             _idRegion.Text = $"거주구역 :  {p.Id.Region}";
-            ReplacePhoto(p.Id.PhotoPath);
+            ReplacePhotos(p.Id.PhotoPath);
 
             // 처분 도장 제거
             if (_stampOverlay != null)
@@ -296,12 +298,10 @@ namespace PetitionGame
                 _stampOverlay = null;
             }
 
-            // 버튼/결과 초기화
             _result.Text = "";
             SetVerdictButtonsEnabled(true);
             _btnNext.Visible = false;
 
-            // 4번째에서 이첩 버튼 + 스탯 첫 등장
             if (isLast)
             {
                 _btnRefer.Visible = true;
@@ -323,7 +323,6 @@ namespace PetitionGame
             ShowStamp(v);
             _result.Text = BuildFeedback(v, violations, isLast);
 
-            // 스탯 변화 (4번째 청원에서만 — 방식 시연)
             if (isLast)
             {
                 if (v == Verdict.Approve)
@@ -335,7 +334,6 @@ namespace PetitionGame
                 {
                     _barSin.Bump(+1); _stats.Sin++;
                 }
-                // 기각: 원칙대로 처분 — 이 데모에선 스탯 변화 없음
             }
 
             _btnNext.Text = isLast ? "1일차 마치기 ▶" : "다음 청원 ▶";
@@ -349,7 +347,6 @@ namespace PetitionGame
 
             if (isLast)
             {
-                // 금지 신청사항 — 처분 대상
                 switch (v)
                 {
                     case Verdict.Approve:
@@ -385,19 +382,30 @@ namespace PetitionGame
 
         // ── 보조 ──────────────────────────────────────────────────
 
-        private void ReplacePhoto(string photoFile)
+        private void ReplacePhotos(string photoFile)
         {
-            if (_photo != null)
+            string file = photoFile ?? "photo_01.png";
+
+            // 신분증 사진
+            var idHost = _idPhoto.Parent;
+            idHost.Controls.Remove(_idPhoto);
+            _idPhoto.Dispose();
+            _idPhoto = new AssetPanel(file, ImageLayout.Zoom) { Dock = DockStyle.Fill };
+            idHost.Controls.Add(_idPhoto);
+
+            // 청원서 사진칸 (양식 우상단)
+            if (_petitionPhoto != null)
             {
-                _idPanel.Controls.Remove(_photo);
-                _photo.Dispose();
+                _petitionPanel.Controls.Remove(_petitionPhoto);
+                _petitionPhoto.Dispose();
             }
-            _photo = new AssetPanel(photoFile ?? "photo_01.png", ImageLayout.Zoom)
+            _petitionPhoto = new AssetPanel(file, ImageLayout.Zoom)
             {
-                Size = new Size(120, 150),
-                Location = new Point(24, 56)
+                Location = new Point(253, 59),
+                Size = new Size(90, 105),
+                BackColor = Color.Transparent
             };
-            _idPanel.Controls.Add(_photo);
+            _petitionPanel.Controls.Add(_petitionPhoto);
         }
 
         private void ShowStamp(Verdict v)
@@ -409,10 +417,11 @@ namespace PetitionGame
                 _ => "stamp_refer.png"
             };
 
+            // 양식 우하단 도장칸 위치
             _stampOverlay = new AssetPanel(file, ImageLayout.Zoom)
             {
-                Size = new Size(190, 190),
-                Location = new Point((_petitionPanel.Width - 190) / 2, 150),
+                Location = new Point(251, 389),
+                Size = new Size(96, 72),
                 BackColor = Color.Transparent
             };
             _petitionPanel.Controls.Add(_stampOverlay);
@@ -426,17 +435,17 @@ namespace PetitionGame
             _btnRefer.Enabled = on;
         }
 
-        private Label MakeField(Control parent, string label, int y)
+        private Label MakeField(Control parent, int x, int y, int w)
         {
             var lbl = new Label
             {
-                Font = UiTheme.Body(15f),
+                Font = UiTheme.Body(13.5f, FontStyle.Bold),
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(420, 40),
-                Location = new Point(34, y)
+                Size = new Size(w, 26),
+                Location = new Point(x, y)
             };
             parent.Controls.Add(lbl);
             return lbl;
@@ -448,7 +457,7 @@ namespace PetitionGame
             {
                 Text = text,
                 Font = UiTheme.Body(12f, FontStyle.Bold),
-                ForeColor = Color.FromArgb(190, 190, 198),
+                ForeColor = Color.FromArgb(200, 200, 208),
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -463,8 +472,8 @@ namespace PetitionGame
             {
                 Text = text,
                 Font = UiTheme.Body(16f, FontStyle.Bold),
-                Size = new Size(150, 56),
-                Location = new Point(x, 640),
+                Size = new Size(170, 56),
+                Location = new Point(x, 540),
                 FlatStyle = FlatStyle.Flat,
                 BackColor = color,
                 ForeColor = Color.White,

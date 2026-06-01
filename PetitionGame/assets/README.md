@@ -12,9 +12,11 @@
 - `bg_desk.png` — 책상 시점 (게임플레이 메인 배경, 중앙은 비어 있음)
 
 ## UI 부품 (글자 없음 — 텍스트는 코드로 오버레이)
-- `petition_blank.png` · `id_blank.png`
-- `stamp_approve.png` · `stamp_reject.png` · `stamp_refer.png`
+- `petition_blank.png` — 세로형 청원서 양식 (사진칸·도장칸 포함)
+- `stamp_approve.png` · `stamp_reject.png` · `stamp_refer.png` — 투명 배경 도장
 - `photo_01.png` ~ `photo_04.png` — 무명 청원자 증명사진
-- `icon_conscience.png` · `icon_sin.png` · `icon_suspicion.png`
+- `icon_conscience.png` · `icon_sin.png` · `icon_suspicion.png` — 스탯 아이콘
+
+> 신분증(`id_blank`)은 전용 아트 없이 **코드로 그린 스타일 카드**로 표시합니다.
 
 > 빌드 시 이 폴더의 파일은 출력 폴더(`bin/.../assets`)로 복사됩니다.
