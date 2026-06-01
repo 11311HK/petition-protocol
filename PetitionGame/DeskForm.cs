@@ -33,10 +33,13 @@ namespace PetitionGame
         private Label _pApplicant, _pRegion, _pRequest, _pStamp;
         private AssetPanel _stampOverlay;
 
-        // 신분증 카드 (코드로 그린 스타일 카드)
-        private Panel _idCard;
+        // 신분증 카드 (id_blank 양식)
+        private AssetPanel _idCard;
         private AssetPanel _idPhoto;
         private Label _idName, _idRegion;
+
+        // 신분증 사진칸 위치 (양식 기준)
+        private static readonly Rectangle IdPhotoBox = new Rectangle(40, 46, 120, 157);
 
         // 결과/버튼
         private Label _result;
@@ -124,38 +127,14 @@ namespace PetitionGame
         {
             host.Controls.Add(MakeCaption("신분증", 560, PY - 28, 380));
 
-            _idCard = new Panel
+            _idCard = new AssetPanel("id_blank.png")
             {
-                Size = new Size(380, 250),
-                Location = new Point(560, PY),
-                BackColor = UiTheme.Paper,
-                BorderStyle = BorderStyle.FixedSingle
+                Size = new Size(380, 254),
+                Location = new Point(560, PY)
             };
             host.Controls.Add(_idCard);
 
-            var header = new Label
-            {
-                Text = "신 분 증  ·  제국 시민",
-                Font = UiTheme.Body(13f, FontStyle.Bold),
-                ForeColor = Color.White,
-                BackColor = UiTheme.Accent,
-                AutoSize = false,
-                TextAlign = ContentAlignment.MiddleCenter,
-                Dock = DockStyle.Top,
-                Height = 36
-            };
-            _idCard.Controls.Add(header);
-
-            var photoFrame = new Panel
-            {
-                Location = new Point(20, 56),
-                Size = new Size(118, 150),
-                BackColor = Color.FromArgb(60, 52, 40)
-            };
-            _idCard.Controls.Add(photoFrame);
-            _idPhoto = new AssetPanel("photo_01.png", ImageLayout.Zoom) { Dock = DockStyle.Fill };
-            photoFrame.Controls.Add(_idPhoto);
-
+            // 사진칸 (양식 좌측) — 실제 사진은 ReplacePhotos 에서 주입
             _idName = new Label
             {
                 Font = UiTheme.Body(15f, FontStyle.Bold),
@@ -163,8 +142,8 @@ namespace PetitionGame
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(210, 32),
-                Location = new Point(156, 70)
+                Size = new Size(170, 30),
+                Location = new Point(179, 48)
             };
             _idCard.Controls.Add(_idName);
 
@@ -175,8 +154,8 @@ namespace PetitionGame
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(210, 32),
-                Location = new Point(156, 120)
+                Size = new Size(170, 30),
+                Location = new Point(179, 82)
             };
             _idCard.Controls.Add(_idRegion);
         }
@@ -386,12 +365,20 @@ namespace PetitionGame
         {
             string file = photoFile ?? "photo_01.png";
 
-            // 신분증 사진
-            var idHost = _idPhoto.Parent;
-            idHost.Controls.Remove(_idPhoto);
-            _idPhoto.Dispose();
-            _idPhoto = new AssetPanel(file, ImageLayout.Zoom) { Dock = DockStyle.Fill };
-            idHost.Controls.Add(_idPhoto);
+            // 신분증 사진 (양식 사진칸)
+            if (_idPhoto != null)
+            {
+                _idCard.Controls.Remove(_idPhoto);
+                _idPhoto.Dispose();
+            }
+            _idPhoto = new AssetPanel(file, ImageLayout.Zoom)
+            {
+                Location = IdPhotoBox.Location,
+                Size = IdPhotoBox.Size,
+                BackColor = Color.Transparent
+            };
+            _idCard.Controls.Add(_idPhoto);
+            _idPhoto.SendToBack(); // 이름/거주구역 라벨이 위에 오도록
 
             // 청원서 사진칸 (양식 우상단)
             if (_petitionPhoto != null)
