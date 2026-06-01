@@ -114,10 +114,10 @@ namespace PetitionGame
             host.Controls.Add(_petitionPanel);
 
             // 양식 칸에 맞춘 신청 정보 (목업으로 정렬 확인한 좌표)
-            _pApplicant = MakeField(_petitionPanel, 38, 69, 210);
-            _pRegion = MakeField(_petitionPanel, 38, 100, 210);
-            _pRequest = MakeField(_petitionPanel, 38, 205, 300);
-            _pStamp = MakeField(_petitionPanel, 38, 404, 230);
+            _pApplicant = MakeField(_petitionPanel, 38, 69, 300);
+            _pRegion = MakeField(_petitionPanel, 38, 100, 300);
+            _pRequest = MakeField(_petitionPanel, 38, 205, 320);
+            _pStamp = MakeField(_petitionPanel, 38, 404, 260);
 
             // 양식 우상단 사진칸
             // (실제 사진은 ReplacePhotos 에서 주입)
@@ -137,25 +137,25 @@ namespace PetitionGame
             // 사진칸 (양식 좌측) — 실제 사진은 ReplacePhotos 에서 주입
             _idName = new Label
             {
-                Font = UiTheme.Body(15f, FontStyle.Bold),
+                Font = UiTheme.Body(13f, FontStyle.Bold),
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(170, 30),
-                Location = new Point(179, 48)
+                Size = new Size(198, 28),
+                Location = new Point(170, 50)
             };
             _idCard.Controls.Add(_idName);
 
             _idRegion = new Label
             {
-                Font = UiTheme.Body(14f),
+                Font = UiTheme.Body(12f),
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(170, 30),
-                Location = new Point(179, 82)
+                Size = new Size(198, 28),
+                Location = new Point(170, 84)
             };
             _idCard.Controls.Add(_idRegion);
         }
