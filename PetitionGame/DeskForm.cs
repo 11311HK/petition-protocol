@@ -31,7 +31,7 @@ namespace PetitionGame
         private AssetPanel _petitionPanel;
         private AssetPanel _petitionPhoto;
         private Label _pApplicant, _pRegion, _pRequest, _pStamp;
-        private AssetPanel _stampOverlay;
+        private StampOverlay _stampOverlay;
 
         // 신분증 카드 (id_blank 양식)
         private AssetPanel _idCard;
@@ -141,21 +141,23 @@ namespace PetitionGame
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
+                AutoEllipsis = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(198, 28),
-                Location = new Point(170, 50)
+                Size = new Size(204, 28),
+                Location = new Point(166, 50)
             };
             _idCard.Controls.Add(_idName);
 
             _idRegion = new Label
             {
-                Font = UiTheme.Body(12f),
+                Font = UiTheme.Body(11.5f),
                 ForeColor = UiTheme.PaperInk,
                 BackColor = Color.Transparent,
                 AutoSize = false,
+                AutoEllipsis = false,
                 TextAlign = ContentAlignment.MiddleLeft,
-                Size = new Size(198, 28),
-                Location = new Point(170, 84)
+                Size = new Size(204, 28),
+                Location = new Point(166, 84)
             };
             _idCard.Controls.Add(_idRegion);
         }
@@ -277,7 +279,8 @@ namespace PetitionGame
                 _stampOverlay = null;
             }
 
-            _result.Text = "";
+            // 결정 전: 결과 대신 안내
+            SetResult("서류를 검토하고 결정하세요.", Color.FromArgb(165, 165, 173));
             SetVerdictButtonsEnabled(true);
             _btnNext.Visible = false;
 
@@ -300,7 +303,7 @@ namespace PetitionGame
             bool isLast = _index == _petitions.Count - 1;
 
             ShowStamp(v);
-            _result.Text = BuildFeedback(v, violations, isLast);
+            SetResult(BuildFeedback(v, violations, isLast), Color.WhiteSmoke);
 
             if (isLast)
             {
@@ -404,15 +407,21 @@ namespace PetitionGame
                 _ => "stamp_refer.png"
             };
 
-            // 양식 우하단 도장칸 위치
-            _stampOverlay = new AssetPanel(file, ImageLayout.Zoom)
+            // 본문 빈 공간(신청사항 아래 ~ 황제 도장 위)에 크게 · 기울여 · 반투명으로.
+            // 패널 가로 중앙(192) 정렬, 신청인/신청사항 텍스트는 비켜감.
+            _stampOverlay = new StampOverlay(file, angleDeg: -12f, opacity: 0.72f)
             {
-                Location = new Point(251, 389),
-                Size = new Size(96, 72),
-                BackColor = Color.Transparent
+                Location = new Point(112, 237),
+                Size = new Size(160, 160)
             };
             _petitionPanel.Controls.Add(_stampOverlay);
             _stampOverlay.BringToFront();
+        }
+
+        private void SetResult(string text, Color color)
+        {
+            _result.Text = text;
+            _result.ForeColor = color;
         }
 
         private void SetVerdictButtonsEnabled(bool on)
