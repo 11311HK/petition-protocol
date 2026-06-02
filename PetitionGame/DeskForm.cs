@@ -29,13 +29,13 @@ namespace PetitionGame
 
         // 청원서
         private AssetPanel _petitionPanel;
-        private AssetPanel _petitionPhoto;
+        private ImageLayer _petitionPhoto;
         private Label _pApplicant, _pRegion, _pRequest, _pStamp;
-        private StampOverlay _stampOverlay;
+        private ImageLayer _stampOverlay;
 
         // 신분증 카드 (id_blank 양식)
         private AssetPanel _idCard;
-        private AssetPanel _idPhoto;
+        private ImageLayer _idPhoto;
         private Label _idName, _idRegion;
 
         // 신분증 사진칸 위치 (양식 기준)
@@ -368,17 +368,16 @@ namespace PetitionGame
         {
             string file = photoFile ?? "photo_01.png";
 
-            // 신분증 사진 (양식 사진칸)
+            // 신분증 사진 (양식 사진칸) — 고품질 보간으로 그려 모아레 방지
             if (_idPhoto != null)
             {
                 _idCard.Controls.Remove(_idPhoto);
                 _idPhoto.Dispose();
             }
-            _idPhoto = new AssetPanel(file, ImageLayout.Zoom)
+            _idPhoto = new ImageLayer(file)
             {
                 Location = IdPhotoBox.Location,
-                Size = IdPhotoBox.Size,
-                BackColor = Color.Transparent
+                Size = IdPhotoBox.Size
             };
             _idCard.Controls.Add(_idPhoto);
             _idPhoto.SendToBack(); // 이름/거주구역 라벨이 위에 오도록
@@ -389,11 +388,10 @@ namespace PetitionGame
                 _petitionPanel.Controls.Remove(_petitionPhoto);
                 _petitionPhoto.Dispose();
             }
-            _petitionPhoto = new AssetPanel(file, ImageLayout.Zoom)
+            _petitionPhoto = new ImageLayer(file)
             {
                 Location = new Point(253, 59),
-                Size = new Size(90, 105),
-                BackColor = Color.Transparent
+                Size = new Size(90, 105)
             };
             _petitionPanel.Controls.Add(_petitionPhoto);
         }
@@ -409,7 +407,7 @@ namespace PetitionGame
 
             // 본문 빈 공간(신청사항 아래 ~ 황제 도장 위)에 크게 · 기울여 · 반투명으로.
             // 패널 가로 중앙(192) 정렬, 신청인/신청사항 텍스트는 비켜감.
-            _stampOverlay = new StampOverlay(file, angleDeg: -12f, opacity: 0.72f)
+            _stampOverlay = new ImageLayer(file, angleDeg: -12f, opacity: 0.72f)
             {
                 Location = new Point(112, 237),
                 Size = new Size(160, 160)
